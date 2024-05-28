@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    lastname:{
+    lastName:{
       type:String,
       required:true
     },
@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
         required: true
     },
     contactNumber: {
-        type:Number,
+        type:String,
         required:true
     },
     role:{
@@ -31,10 +31,8 @@ const userSchema = new mongoose.Schema({
         type:Boolean,
         required:false,
         default:false
-    },
-
-},
-    {timestamps});
+    }
+});
 
 const User = mongoose.model('User', userSchema);
 export default User;
