@@ -1,5 +1,5 @@
 // calling all dependencies
-import Express  from "express"
+import express  from "express"
 import cors from "cors"
 import dotenv from "dotenv"
 import bodyParser from "body-parser"
@@ -10,12 +10,14 @@ import connectDB from "./src/config/db.js";
 dotenv.config()
 
 //assigning the express method to a variable
-const app = Express()
+const app = express()
 
 //using the express functions
+app.use(express.json());
 app.use(cors({origin: "*"}))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
+
 app.use('/api', router)
 
 //creating the start server method

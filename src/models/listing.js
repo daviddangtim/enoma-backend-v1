@@ -1,5 +1,6 @@
-import mongoose from "mongoose";
-const landSchema = new mongoose.Schema({
+import mongoose, {Schema} from "mongoose";
+// import {enum} from "zod";
+const listingSchema = new mongoose.Schema({
     owner: {
         type: Schema.Types.ObjectId,
         ref: 'User',
@@ -15,11 +16,12 @@ const landSchema = new mongoose.Schema({
     },
     img:{
         type: String,
-        default:""
+        default:"",
+        required:false
     },
     size: {
         type: String,
-        required: true
+        required: false
     },
     location: {
         type: String,
@@ -33,13 +35,13 @@ const landSchema = new mongoose.Schema({
         type: Boolean,
         required: true
     },
-    categories:{
-        type: Array,
+    category:{
+        type:String ,
         required:false
     }
 
-},{timestamps});
+});
 
-const Land = mongoose.model('Land', landSchema);
+const Listing = mongoose.model('Listing', listingSchema);
 
-export default Land;
+export default Listing;
