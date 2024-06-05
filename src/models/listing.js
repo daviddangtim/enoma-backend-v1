@@ -35,8 +35,8 @@ const listingSchema = new mongoose.Schema({
         type: Boolean,
         required: true
     },
-    category:{
-        type:String ,
+    categories:{
+        type:Array,
         required:false
     }
 

@@ -1,5 +1,4 @@
 import Listing from "../../models/listing.js";
-import listing from "../../models/listing.js";
 
 // This function creates a new listing, simple enough
 export const createNewListing = async (req,res,next) =>{
@@ -36,6 +35,7 @@ export const createNewListing = async (req,res,next) =>{
 
    }
 }
+
 // This function displays a single listing on a details page, and also lets you create cards with the data
 export const displaySingleListing = async (req, res, next) =>{
     try{
@@ -52,15 +52,47 @@ export const displaySingleListing = async (req, res, next) =>{
         throw new Error
     }
 }
+
+export const getAllListings = async(req,res)=>{
+    const queryNew = req.query.new;
+    const queryCategory = req.query.category;
+    try{
+        let listings;
+        if(queryNew){
+            listings =await Listing.find().sort({createdAt:-1}).limit(5);
+        } else if(queryCategory){
+            listings = await Listing.find({categories:{
+                $in: [queryCategory],
+                }});
+
+        } else{
+            listings = await Listing.find();
+        }
+    }catch (e) {
+        res.status(500).send(e)
+        throw new Error
+    }
+}
+
 // This function displays all the listings, self-explanatory
 export const displayAllListings = async (req,res,next) => {
-    try {
-        const listing = await Listing.find().populate('owner');
-        const {password, ...others} = listing._doc;
-        if (!listing){
-            res.status(204).json({Message: "There are no posts currently"})
+    const queryNew = req.query.new;
+    const queryCategory = req.query.category;
+    try{
+        let listings;
+        if(queryNew){
+            listings =await Listing.find().populate("owner").sort({createdAt:-1}).limit(5);
+            const {password, ...others} =listings.owner._doc;
+
+        } else if(queryCategory){
+            listings = await Listing.find({categories:{
+                    $in: [queryCategory],
+                }}).populate("owner");
+            const {password, ...others} = listings.owner._doc;
+            res.status(200).send(others)
+
         } else{
-            res.status(200).json({Listings : listing})
+            listings = await Listing.find();
         }
     } catch (e) {
         res.status(500).json({Message:"Internal Server Error"})
