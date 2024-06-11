@@ -1,11 +1,8 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    firstName: {
-        type: String,
-        required: true
-    },
-    lastName:{
+
+    name:{
       type:String,
       required:true
     },
@@ -31,6 +28,15 @@ const userSchema = new mongoose.Schema({
         type:Boolean,
         required:false,
         default:false
+    },
+    profilePic:{
+        type:String,
+        default:"",
+        required:false
+    },
+    cloudinary_id: {
+        type: String,
+        required: false
     }
 });
 

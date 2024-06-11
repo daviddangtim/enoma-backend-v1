@@ -2,11 +2,12 @@ import express from "express"
 const listingRouter = express.Router();
 import protect from "../../middleware/routeProtection.js";
 import {
-    createNewListing,
+    createNewListing, deleteAllListings,
     displayAllListings, displayAllListingsForASingleUserWithId, displayAllListingsForASingleUserWithoutId,
     displaySingleListing, updateListingPrivate
 } from "../../controllers/products/listingController.js";
 import upload from "../../middleware/multer.js";
+import {adminOnly} from "../../middleware/roleBasedAccess.js";
 
 
 // create a new listing
@@ -21,4 +22,8 @@ listingRouter.get("/display-all",protect,displayAllListingsForASingleUserWithout
 listingRouter.get("/display-user/:id",protect,displayAllListingsForASingleUserWithId)
 // updates a listing
 listingRouter.patch("/update-single/:id",protect,updateListingPrivate)
+
+
+// Admin Routes
+listingRouter.delete("/deleteall",adminOnly,deleteAllListings)
 export default listingRouter;

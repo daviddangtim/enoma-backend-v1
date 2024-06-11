@@ -149,7 +149,6 @@ export const displayAllListingsForASingleUserWithoutId = async (req,res,next) =>
     try{
         const listing = await Listing.findById(req.user.id);
 
-
         if (!listing){
             res.status(204)
             //   Makes sure user who is signed in is not the owner of the listings
@@ -181,4 +180,10 @@ export const updateListingPrivate = async (req, res, next) => {
         res.status(500).send("Internal Server Error")
         console.log(`Error encountered in updateListingPrivate ${e}`)
 
-    }}
+    }
+}
+
+export const deleteAllListings = async (req,res) => {
+    const query = await Listing.deleteMany();
+    res.status(200).json({Message:"All listings deleted successfully"})
+}

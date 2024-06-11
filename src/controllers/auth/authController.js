@@ -4,15 +4,11 @@ import { signUpValidator, loginValidator } from "../../validators/authValidators
 import { formatZodError } from "../../validators/errorMessage.js";
 import generateToken from "../../middleware/tokenGenerator.js";
 
+// Function to compare the password
 const comparePasswords = (password, confirmPassword) => {
     return password === confirmPassword;
 };
 
-// const createProfile = async (req,res)=>{
-//     const user = await User.findById(req.user.id);
-//     const profile = await Profile.create(req.body);
-//     res.status(200).send(profile)
-// }
 
 // Signup
 export const signUp = async (req, res, next) => {
@@ -22,7 +18,8 @@ export const signUp = async (req, res, next) => {
         return res.status(400).json({ errors: formatZodError(registerResults.error.issues) });
     }
     try {
-        const { firstName, lastName, email, password, confirmPassword, contactNumber, role, isAdmin } = req.body;
+        const { name, email, password, confirmPassword, contactNumber, role, isAdmin } = req.body;
+
         // Check if passwords match
         if (!comparePasswords(password, confirmPassword)) {
             return res.status(400).json({ message: "Passwords do not match" });
@@ -39,8 +36,7 @@ export const signUp = async (req, res, next) => {
 
             // Creating a user document
             const newUser = new User({
-                firstName,
-                lastName,
+                name,
                 email,
                 password: hashedPassword,
                 contactNumber,
@@ -60,6 +56,8 @@ export const signUp = async (req, res, next) => {
         res.status(500).json({ message: "Server encountered an error", error: `${e}` });
     }
 }
+
+
 
 export const login = async (req, res, next) => {
     // Validation
