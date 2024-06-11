@@ -13,7 +13,7 @@ dotenv.config()
 const app = express()
 
 const corsOptions = {
-    origin: 'https://enoma-backup.vercel.app', // Allow this origin
+    origin: '*', // Allow this origin
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow these HTTP methods
     allowedHeaders: ['Content-Type', 'Authorization'] // Allow these headers
 };
