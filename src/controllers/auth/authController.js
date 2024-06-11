@@ -5,8 +5,8 @@ import { formatZodError } from "../../validators/errorMessage.js";
 import generateToken from "../../middleware/tokenGenerator.js";
 
 // Function to compare the password
-const comparePasswords = (password, confirmPassword) => {
-    return password === confirmPassword;
+const comparePasswords = async (password, confirmPassword) => {
+    return await password === confirmPassword;
 };
 
 
@@ -15,8 +15,8 @@ export const signUp = async (req, res, next) => {
     // Validation
     const registerResults = signUpValidator.safeParse(req.body);
     if (!registerResults.success) {
+        console.log(formatZodError(registerResults.error.issues));
         return res.status(400).json({ errors: formatZodError(registerResults.error.issues) });
-        console.log(formatZodError(registerResults.error.issues))
     }
     try {
         const { name, email, password, confirmPassword, contactNumber, role  } = req.body;

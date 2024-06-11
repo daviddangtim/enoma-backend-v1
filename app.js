@@ -12,9 +12,15 @@ dotenv.config()
 //assigning the express method to a variable
 const app = express()
 
+const corsOptions = {
+    origin: 'https://enoma-backup.vercel.app', // Allow this origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow these HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'] // Allow these headers
+};
+
 //using the express functions
 app.use(express.json());
-app.use(cors({origin: "*"}))
+app.use(cors(corsOptions));
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 
