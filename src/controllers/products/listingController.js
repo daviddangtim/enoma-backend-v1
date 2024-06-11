@@ -111,7 +111,8 @@ export const displayAllListings = async (req, res, next) => {
             };
         });
 
-        res.status(200).json(listingsWithoutPasswords);
+        !listings ?  res.status(204).json({ Message: "There are no posts currently" }) : res.status(200).json({ Message: "Listings Found", listings: listingsWithoutPasswords });
+
     } catch (e) {
         res.status(500).json({ Message: "Internal Server Error" });
         console.log(`There was an error in displayAllListings`, e);

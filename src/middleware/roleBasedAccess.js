@@ -2,7 +2,7 @@ import protect from "./routeProtection.js";
 
 const adminOnly =   (req,res,next) =>{
     protect(req, res , ()=>{
-        if( req.user.isAdmin || req.user.role === "admin") {
+        if( req.user.isAdmin || req.user.role === "Admin") {
             next();
         } else {
             res.status(403).send("Admin Only");

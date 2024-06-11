@@ -1,8 +1,8 @@
 import {z} from 'zod';
 
 export const signUpValidator = z.object({
-    firstName: z.string(),
-    lastName:z.string(),
+
+    name:z.string(),
     password: z
         .string()
         .min(6, { message: 'Password should be at least 6 characters long' })

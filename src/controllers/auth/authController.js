@@ -16,6 +16,7 @@ export const signUp = async (req, res, next) => {
     const registerResults = signUpValidator.safeParse(req.body);
     if (!registerResults.success) {
         return res.status(400).json({ errors: formatZodError(registerResults.error.issues) });
+        console.log(formatZodError(registerResults.error.issues))
     }
     try {
         const { name, email, password, confirmPassword, contactNumber, role, isAdmin } = req.body;
