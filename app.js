@@ -19,6 +19,7 @@ const corsOptions = {
 };
 
 //using the express functions
+app.options('*', cors(corsOptions)); // Enable preflight across the board
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(bodyParser.json())
