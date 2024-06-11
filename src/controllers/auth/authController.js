@@ -19,8 +19,8 @@ export const signUp = async (req, res, next) => {
         console.log(formatZodError(registerResults.error.issues))
     }
     try {
-        const { name, email, password, confirmPassword, contactNumber, role, isAdmin } = req.body;
-
+        const { name, email, password, confirmPassword, contactNumber, role  } = req.body;
+        let {isAdmin} = req.body;
         // Check if passwords match
         if (!comparePasswords(password, confirmPassword)) {
             return res.status(400).json({ message: "Passwords do not match" });
