@@ -12,7 +12,7 @@ const adminOnly =   (req,res,next) =>{
 
 const userOnly =   (req,res,next) =>{
     protect(req, res , ()=>{
-        if(req.user.id === req.params.id || req.user.role === "user") {
+        if(req.user.id === req.params.id || req.user.role === "User") {
             next();
         } else {
             res.status(403).send("You are not allowed to do that!");

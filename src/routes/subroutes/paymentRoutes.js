@@ -1,8 +1,9 @@
 import express from "express"
-import authRouter from "./authRoutes.js";
-const router = express.Router();
-import protect from "../../middleware/routeProtection.js";
+const payRouter = express.Router();
+import {createPaymentIntent} from "../../controllers/payment/paymentController.js";
+import {userOnly} from "../../middleware/roleBasedAccess.js";
 
 
-router.use("/",authRouter);
-export default router;
+payRouter.post("/pay",userOnly,createPaymentIntent);
+
+export default payRouter;

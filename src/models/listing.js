@@ -38,6 +38,10 @@ const listingSchema = new mongoose.Schema({
     categories:{
         type:Array,
         required:false
+    },
+    cloudinary_id: {
+        type: String,
+        required: false
     }
 
 });

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, {Schema} from "mongoose";
 
 const paymentSchema = new mongoose.Schema({
     fromUser: {
@@ -15,6 +15,10 @@ const paymentSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    currency:{
+      type:String,
+      required:true
+    },
     paymentDate: {
         type: Date,
         default: Date.now
@@ -26,9 +30,8 @@ const paymentSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: ['Pending', 'Completed', 'Failed'],
-        default: 'Pending'
-    }
-},{timestamps});
+        default: 'Pending',
+    }});
 
 const Payment = mongoose.model('Payment', paymentSchema);
 

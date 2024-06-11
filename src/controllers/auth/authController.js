@@ -8,6 +8,12 @@ const comparePasswords = (password, confirmPassword) => {
     return password === confirmPassword;
 };
 
+// const createProfile = async (req,res)=>{
+//     const user = await User.findById(req.user.id);
+//     const profile = await Profile.create(req.body);
+//     res.status(200).send(profile)
+// }
+
 // Signup
 export const signUp = async (req, res, next) => {
     // Validation
