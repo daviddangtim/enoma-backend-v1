@@ -38,7 +38,7 @@ export const createNewListing = async (req, res, next) => {
             const listing = await newListing.save();
 
             if (listing) {
-                res.status(201).json({ message: "Listing created successfully", listing });
+                res.status(200).json({ message: "Listing created successfully", listing });
             } else {
                 res.status(400).json({ message: "Listing was unable to be saved" });
             }
@@ -160,23 +160,35 @@ export const displayAllListingsForASingleUserWithoutId = async (req,res,next) =>
 
 export const updateListingPrivate = async (req, res, next) => {
     try {
-        const listing = await Listing.findByIdAndUpdate(req.params.id, req.body, {new: true})
+
+        const listing = await Listing.findByIdAndUpdate(req.params.id, req.body , {new: true})
+
         if (!listing) {
             res.status(404).json({Message: "This listing was either deleted recently or does not exist"})
         }else if (listing.owner.toString() !== req.user.id) {
             res.status(401).json({Message: "You are not allowed to update this listing"})
         }
-        else if (listing) {
+        else if (listing){
+            await cloudinary.uploader.update_metadata(req.file.path, (err,result)=>{
+                if(err){
+                    console.log(err);
+                    return res.status(500).json({
+                        success: false,
+                        message: "Error"
+                    })
+                }
+            });
             res.status(200).json({Message: "Update Successful", listing})
         }
     } catch (e) {
         res.status(500).send("Internal Server Error")
         console.log(`Error encountered in updateListingPrivate ${e}`)
 
+
     }
-}
 // Admin Only
 export const deleteAllListings = async (req,res) => {
-    const query = await Listing.deleteMany();
-    res.status(200).json({Message:"All listings deleted successfully"})
-}
+    const listings = await Listing.deleteMany();
+    await cloudinary.uploader.destroy(listings.cloudinary_id);
+    res.status(200).json({Message:"All listings deleted successfully"});
+}}
