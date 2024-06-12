@@ -52,37 +52,24 @@ export const createNewListing = async (req, res, next) => {
 // This function displays a single listing on a details page, and also lets you create cards with the data
 export const displaySingleListing = async (req, res, next) =>{
     try{
-        const listing = await Listing.findById(req.params.id).populate('owner')
-        const {password, ...others} = listing;
-        if(!listing){
+        const listings = await Listing.findById(req.params.id).populate('owner')
+
+        const listingsWithoutPasswords = listings.map(listing => {
+            const { password, ...ownerWithoutPassword } = listing.owner.toObject();
+            return {
+                ...listing.toObject(),
+                owner: ownerWithoutPassword
+            };
+        });
+        if(!listings){
             res.status(404).json({Message: "This listing was either deleted recently or does not exist"})
-        } else if(listing){
-            res.status(200).json({Message:"Displaying Single Listing successfully", others})
+        } else if(listings){
+            res.status(200).json({Message:"Displaying Single Listing successfully", listingsWithoutPasswords})
         }
+
     } catch (e){
         res.status(500).send("Internal Server Error")
         console.log(`Error encountered in displaySingleListing  ${e}`)
-
-    }
-}
-
-export const getAllListings = async(req,res)=>{
-    const queryNew = req.query.new;
-    const queryCategory = req.query.category;
-    try{
-        let listings;
-        if(queryNew){
-            listings =await Listing.find().sort({createdAt:-1}).limit(5);
-        } else if(queryCategory){
-            listings = await Listing.find({categories:{
-                $in: [queryCategory],
-                }});
-
-        } else{
-            listings = await Listing.find();
-        }
-    }catch (e) {
-        res.status(500).send(e)
 
     }
 }
@@ -148,27 +135,32 @@ export const displayAllListingsForASingleUserWithId = async (req, res, next) => 
 
 export const displayAllListingsForASingleUserWithoutId = async (req,res,next) => {
     try{
-        const listing = await Listing.findById(req.user.id);
+        const listings = await Listing.findById(req.user.id);
+        const listingsWithoutPasswords = listings.map(listing => {
+            const { password, ...ownerWithoutPassword } = listing.owner.toObject();
+            return {
+                ...listing.toObject(),
+                owner: ownerWithoutPassword
+            };
+        });
 
-        if (!listing){
+        if (!listings){
             res.status(204)
             //   Makes sure user who is signed in is not the owner of the listings
-        } else if(listing.owner.toString() !== req.user.id){
+        } else if(listings.owner.toString() !== req.user.id){
             res.status(401).json({Unauthorised: "You are not allowed to view these"})
-        } else if(listing){
-            res.status(200).json({Message:"Listings Found", listing})
+        } else if(listings){
+            res.status(200).json({Message:"Listings Found", listingsWithoutPasswords})
         }
     } catch (e) {
         res.status(500).json({Message:"Internal Server Error"})
         console.log(`An error was encountered in displayAllListingsForASingleUser ${e} `)
-
     }
 }
 
 export const updateListingPrivate = async (req, res, next) => {
     try {
         const listing = await Listing.findByIdAndUpdate(req.params.id, req.body, {new: true})
-
         if (!listing) {
             res.status(404).json({Message: "This listing was either deleted recently or does not exist"})
         }else if (listing.owner.toString() !== req.user.id) {
@@ -183,7 +175,7 @@ export const updateListingPrivate = async (req, res, next) => {
 
     }
 }
-
+// Admin Only
 export const deleteAllListings = async (req,res) => {
     const query = await Listing.deleteMany();
     res.status(200).json({Message:"All listings deleted successfully"})

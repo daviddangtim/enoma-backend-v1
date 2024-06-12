@@ -5,19 +5,19 @@ import { formatZodError } from "../../validators/errorMessage.js";
 import generateToken from "../../middleware/tokenGenerator.js";
 
 // Function to compare the password
-const comparePasswords = async (password, confirmPassword) => {
-    return await password === confirmPassword;
+const comparePasswords =  (password, confirmPassword) => {
+    return  password === confirmPassword;
 };
 
 
 // Signup
 export const signUp = async (req, res, next) => {
     // Validation
-    const registerResults = signUpValidator.safeParse(req.body);
-    if (!registerResults.success) {
-        console.log(formatZodError(registerResults.error.issues));
-        return res.status(400).json({ errors: formatZodError(registerResults.error.issues) });
-    }
+    // const registerResults = signUpValidator.safeParse(req.body);
+    // if (!registerResults.success) {
+    //     console.log(formatZodError(registerResults.error.issues));
+    //     return res.status(400).json({ errors: formatZodError(registerResults.error.issues) });
+    // }
     try {
         const { name, email, password, confirmPassword, contactNumber, role  } = req.body;
         let {isAdmin} = req.body;
@@ -62,10 +62,10 @@ export const signUp = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
     // Validation
-    const loginResults = loginValidator.safeParse(req.body);
-    if (!loginResults.success) {
-        return res.status(400).json({ errors: formatZodError(loginResults.error.issues) });
-    }
+    // const loginResults = loginValidator.safeParse(req.body);
+    // if (!loginResults.success) {
+    //     return res.status(400).json({ errors: formatZodError(loginResults.error.issues) });
+    // }
 
     try {
         const { email, password } = req.body;
