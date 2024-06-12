@@ -186,9 +186,10 @@ export const updateListingPrivate = async (req, res, next) => {
 
 
     }
-// Admin Only
+}
+// // Admin Only
 export const deleteAllListings = async (req,res) => {
     const listings = await Listing.deleteMany();
     await cloudinary.uploader.destroy(listings.cloudinary_id);
     res.status(200).json({Message:"All listings deleted successfully"});
-}}
+}
