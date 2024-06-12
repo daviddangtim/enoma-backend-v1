@@ -158,10 +158,10 @@ export const displayAllListingsForASingleUserWithoutId = async (req,res,next) =>
     }
 }
 
-export const updateListingPrivate = async (req, res, next) => {
+export const updateListing = async (req, res, next) => {
     try {
 
-        const listing = await Listing.findByIdAndUpdate(req.params.id, req.body , {new: true})
+        const listing = await Listing.findById(req.params.id)
 
         if (!listing) {
             res.status(404).json({Message: "This listing was either deleted recently or does not exist"})
@@ -169,7 +169,7 @@ export const updateListingPrivate = async (req, res, next) => {
             res.status(401).json({Message: "You are not allowed to update this listing"})
         }
         else if (listing){
-            await cloudinary.uploader.update_metadata(req.file.path, (err,result)=>{
+            await cloudinary.uploader.destroy(listing.cloudinary_id, (err,result)=>{
                 if(err){
                     console.log(err);
                     return res.status(500).json({
@@ -178,6 +178,20 @@ export const updateListingPrivate = async (req, res, next) => {
                     })
                 }
             });
+            let image = await cloudinary.uploader.upload(req.file.path)
+            const updatedListing ={
+                owner: req.user.id, // This part is gotten from the payload of the jwt, so the user that is logged in is identified as the owner of the listing
+                title: req.body,
+                description: req.body,
+                size: req.body,
+                location: req.body,
+                price: req.body,
+                isForSale: req.body,
+                categories: req.body,
+                image :  image.secure_url,
+                cloudinary_id : image.public_id
+            }
+            const listing = await Listing.findByIdAndUpdate(req.params.id,updatedListing,{new : true})
             res.status(200).json({Message: "Update Successful", listing})
         }
     } catch (e) {

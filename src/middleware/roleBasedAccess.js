@@ -10,13 +10,15 @@ const adminOnly =   (req,res,next) =>{
     })
 }
 
-const userOnly =   (req,res,next) =>{
-    protect(req, res , ()=>{
-        if(req.user.id === req.params.id || req.user.role.toLowerCase() === "provider" || "user" || "client" ) {
+const userOnly = (req, res, next) => {
+    protect(req, res, () => {
+        const roles = ["provider", "user", "client"];
+        if (req.user.id === req.params.id || roles.includes(req.user.role.toLowerCase())) {
             next();
         } else {
             res.status(403).send("You are not allowed to do that!");
         }
-    })
-}
+    });
+};
+
 export {adminOnly,userOnly};

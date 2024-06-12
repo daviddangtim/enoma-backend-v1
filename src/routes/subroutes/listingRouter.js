@@ -4,24 +4,24 @@ import protect from "../../middleware/routeProtection.js";
 import {
     createNewListing, deleteAllListings,
     displayAllListings, displayAllListingsForASingleUserWithId, displayAllListingsForASingleUserWithoutId,
-    displaySingleListing, updateListingPrivate
+    displaySingleListing, updateListing
 } from "../../controllers/products/listingController.js";
 import upload from "../../middleware/multer.js";
-import {adminOnly} from "../../middleware/roleBasedAccess.js";
+import {adminOnly, userOnly} from "../../middleware/roleBasedAccess.js";
 
 
 // create a new listing
-listingRouter.post("/create", protect,upload.single('img'), createNewListing );
+listingRouter.post("/create", userOnly,upload.single('img'), createNewListing );
 //  displays a single listing on a details page
-listingRouter.get("/display-single/:id",protect, displaySingleListing)
+listingRouter.get("/display-details/:id",userOnly, displaySingleListing)
 // Displays all listings and allows filtering
-listingRouter.get("/display-single",protect, displayAllListings)
+listingRouter.get("/display",userOnly, displayAllListings)
 // displays all the listings, self-explanatory
-listingRouter.get("/display-all",protect,displayAllListingsForASingleUserWithoutId)
+listingRouter.get("/display",userOnly,displayAllListingsForASingleUserWithoutId)
 // displays all listings for a single user
-listingRouter.get("/display-user/:id",protect,displayAllListingsForASingleUserWithId)
+listingRouter.get("/display-user/:id",userOnly,displayAllListingsForASingleUserWithId)
 // updates a listing
-listingRouter.patch("/update-single/:id",protect,updateListingPrivate)
+listingRouter.patch("/update-single/:id",userOnly,updateListing)
 
 
 // Admin Routes
