@@ -80,6 +80,8 @@ export const displayAllListings = async (req, res, next) => {
     const queryNew = req.query.new;
     const queryCategory = req.query.category;
 
+
+
     try {
         let listings;
 
