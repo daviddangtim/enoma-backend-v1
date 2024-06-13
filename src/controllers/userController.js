@@ -7,26 +7,47 @@ import bcrypt from "bcrypt";
     res.status(200).send(profile)
 }
 
-export const updateProfile = async (req,res) =>{
-    if(req.body.password){
-        // Hashing the password
-        const salt = await bcrypt.genSalt(10);
-       const  hashedPassword = await bcrypt.hash(req.body.password, salt);
-        req.body.password = hashedPassword;
-    } else{
-        try{
-            const updatedUser = await User.findByIdAndUpdate(
-                req.user.id,
-                {
-                $set: req.body
-            },{new:true} );
-            res.status(200).send("User Updated", updatedUser)
-        }catch (e){
-            res.status(500).send(e)
-
+export const updateUserDetails = async (req, res, next) => {
+    try {
+        const userToUpdate = await User.findById(req.user.id);
+        if (!userToUpdate) {
+            return res.status(404).json({ Message: "User not found" });
         }
+
+        // If a new image file is provided
+        if (req.file && userToUpdate.cloudinary_id) {
+            // Delete the old image from Cloudinary
+            await cloudinary.uploader.destroy(userToUpdate.cloudinary_id, (err, result) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).json({
+                        success: false,
+                        message: "Error deleting old image"
+                    });
+                }
+            });
+
+            // Upload the new image to Cloudinary
+            const image = await cloudinary.uploader.upload(req.file.path);
+            req.body.profilePic = image.secure_url; // Update the profile image URL in req.body
+            req.body.cloudinary_id = image.public_id; // Update the Cloudinary ID in req.body
+        }
+
+        // Update the user's details
+        const updatedUser = await User.updateOne({ _id: req.user.id }, req.body);
+
+        if (updatedUser.nModified > 0) {
+            res.status(200).json({ Message: "User updated successfully" });
+        } else {
+            res.status(400).json({ Message: "User update failed" });
+        }
+    } catch (e) {
+        res.status(500).json({ Message: "Internal Server Error" });
+        console.error(e.message);
+        console.log(`An error was encountered in updateUserDetails: ${e}`);
     }
-}
+};
+
 
 export const getAnyUser = async (req,res) =>{
     try {

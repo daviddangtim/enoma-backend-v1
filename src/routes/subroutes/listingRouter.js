@@ -17,7 +17,7 @@ listingRouter.get("/display-details/:id",userOnly, displaySingleListing)
 // Displays all listings and allows filtering
 listingRouter.get("/display",userOnly, displayAllListings)
 // displays all the listings, self-explanatory
-listingRouter.get("/display",userOnly,displayAllListingsForASingleUserWithoutId)
+listingRouter.get("/display-all-user",userOnly,displayAllListingsForASingleUserWithoutId)
 // displays all listings for a single user
 listingRouter.get("/display-user/:id",userOnly,displayAllListingsForASingleUserWithId)
 // updates a listing

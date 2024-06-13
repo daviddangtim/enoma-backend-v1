@@ -9,8 +9,9 @@ dotenv.config();
 export const createNewListing = async (req, res, next) => {
         try {
             // The data used to create the document
-            const { title, description, size, location, price, isForSale, categories } = req.body;
-            let {image} = await cloudinary.uploader.upload(req.file.path, (err,result)=>{
+            const { title, description, size, location, price, isForSale, categories, img } = req.body;
+
+            let image = await cloudinary.uploader.upload(req.file.path, (err,result)=>{
                 if(err){
                     console.log(err);
                     return res.status(500).json({
@@ -19,7 +20,7 @@ export const createNewListing = async (req, res, next) => {
                     })
                 }
             });
-            console.log( image.secure_url,  image.public_id);
+            console.log( image);
             // Create new listing object
             const newListing = new Listing({
                 owner: req.user.id, // This part is gotten from the payload of the jwt, so the user that is logged in is identified as the owner of the listing
@@ -30,7 +31,7 @@ export const createNewListing = async (req, res, next) => {
                 price,
                 isForSale,
                 categories,
-                image :  image.secure_url,
+                img :  image.secure_url,
                 cloudinary_id : image.public_id
             });
 
@@ -115,13 +116,15 @@ export const displayAllListingsForASingleUserWithId = async (req, res, next) => 
             return res.status(204).json({ Message: "There are no posts currently" });
         }
 
-        const listingsWithoutPasswords = listings.map(listing => {
+        const listingsWithoutPasswords = {};
+        (listings || []).forEach(listing => {
             const { password, ...ownerWithoutPassword } = listing.owner.toObject();
-            return {
+            listingsWithoutPasswords[listing.id] = {
                 ...listing.toObject(),
                 owner: ownerWithoutPassword
             };
         });
+
 
         return res.status(200).json({ Message: "Listings Found", listings: listingsWithoutPasswords });
 
@@ -133,30 +136,29 @@ export const displayAllListingsForASingleUserWithId = async (req, res, next) => 
 
 
 
-export const displayAllListingsForASingleUserWithoutId = async (req,res,next) => {
-    try{
-        const listings = await Listing.findById(req.user.id);
-        const listingsWithoutPasswords = listings.map(listing => {
-            const { password, ...ownerWithoutPassword } = listing.owner.toObject();
-            return {
-                ...listing.toObject(),
-                owner: ownerWithoutPassword
-            };
-        });
+export const displayAllListingsForASingleUserWithoutId = async (req, res, next) => {
+    try {
+        const listings = await Listing.find({ owner: req.user.id }).populate('owner');
+        if (!listings || listings.length === 0) {
+            res.status(204).json({ Message: "No Listings Found" });
+        } else {
+            const listingsWithoutPasswords = listings.map(listing => {
+                const { password, ...ownerWithoutPassword } = listing.owner.toObject();
+                return {
+                    ...listing.toObject(),
+                    owner: ownerWithoutPassword
+                };
+            });
 
-        if (!listings){
-            res.status(204)
-            //   Makes sure user who is signed in is not the owner of the listings
-        } else if(listings.owner.toString() !== req.user.id){
-            res.status(401).json({Unauthorised: "You are not allowed to view these"})
-        } else if(listings){
-            res.status(200).json({Message:"Listings Found", listingsWithoutPasswords})
+            res.status(200).json({ Message: "Listings Found", listings: listingsWithoutPasswords });
         }
     } catch (e) {
-        res.status(500).json({Message:"Internal Server Error"})
-        console.log(`An error was encountered in displayAllListingsForASingleUser ${e} `)
+        res.status(500).json({ Message: "Internal Server Error" });
+        console.error(e.message);
+        console.log(`An error was encountered in displayAllListingsForASingleUser ${e}`);
     }
-}
+};
+
 
 export const updateListing = async (req, res, next) => {
     try {
@@ -191,7 +193,16 @@ export const updateListing = async (req, res, next) => {
                 image :  image.secure_url,
                 cloudinary_id : image.public_id
             }
-            const listing = await Listing.findByIdAndUpdate(req.params.id,updatedListing,{new : true})
+            const listingsWithoutPasswords = {};
+            (listings || []).forEach(listing => {
+                const { password, ...ownerWithoutPassword } = listing.owner.toObject();
+                listingsWithoutPasswords[listing.id] = {
+                    ...listing.toObject(),
+                    owner: ownerWithoutPassword
+                };
+            });
+
+            const listing = await Listing.findByIdAndUpdate(req.params.id,listingsWithoutPasswords,{new : true})
             res.status(200).json({Message: "Update Successful", listing})
         }
     } catch (e) {
