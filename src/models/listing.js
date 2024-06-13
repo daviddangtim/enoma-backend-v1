@@ -16,7 +16,7 @@ const listingSchema = new mongoose.Schema({
     },
     img:{
         type: String,
-        default:"",
+        default:"https://i.stack.imgur.com/l60Hf.png",
         required:false
     },
     size: {
@@ -35,9 +35,9 @@ const listingSchema = new mongoose.Schema({
         type: Boolean,
         required: true
     },
-    categories:{
-        type:Array,
-        required:false
+    category:{
+        type:String,
+        required:true
     },
     cloudinary_id: {
         type: String,

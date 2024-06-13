@@ -9,7 +9,7 @@ dotenv.config();
 export const createNewListing = async (req, res, next) => {
         try {
             // The data used to create the document
-            const { title, description, size, location, price, isForSale, categories, img } = req.body;
+            const { title, description, size, location, price, isForSale, category, img } = req.body;
 
             let image = await cloudinary.uploader.upload(req.file.path, (err,result)=>{
                 if(err){
@@ -30,7 +30,7 @@ export const createNewListing = async (req, res, next) => {
                 location,
                 price,
                 isForSale,
-                categories,
+                category: req.body.category.toLowerCase(),
                 img :  image.secure_url,
                 cloudinary_id : image.public_id
             });
@@ -63,10 +63,10 @@ export const displaySingleListing = async (req, res, next) =>{
             };
         });
         if(!listings){
-            res.status(404).json({Message: "This listing was either deleted recently or does not exist"})
-        } else if(listings){
-            res.status(200).json({Message:"Displaying Single Listing successfully", listingsWithoutPasswords})
+           return res.status(404).json({Message: "This listing was either deleted recently or does not exist"})
         }
+            res.status(200).json({Message:"Displaying Single Listing successfully", listingsWithoutPasswords})
+
 
     } catch (e){
         res.status(500).send("Internal Server Error")
@@ -75,23 +75,34 @@ export const displaySingleListing = async (req, res, next) =>{
     }
 }
 
+
+// This function displays all the listings, self-explanatory
+export const displayAllListingsNonQueriable = async (req, res, next) => {
+    try {
+
+        const listings = await Listing.find().populate('owner');
+
+        const listingsWithoutPasswords = listings.map(listing => {
+            const { password, ...ownerWithoutPassword } = listing.owner.toObject();
+            return {
+                ...listing.toObject(),
+                owner: ownerWithoutPassword
+            };
+        });
+
+        !listings ?  res.status(204).json({ Message: "There are no posts currently" }) : res.status(200).json({ Message: "Listings Found", listings: listingsWithoutPasswords });
+
+    } catch (e) {
+        res.status(500).json({ Message: "Internal Server Error" });
+        console.log(`There was an error in displayAllListings`, e);
+    }
+};
+
 // This function displays all the listings, self-explanatory
 export const displayAllListings = async (req, res, next) => {
-    const queryNew = req.query.new;
-    const queryCategory = req.query.category;
-
-
-
     try {
-        let listings;
 
-        if (queryNew) {
-            listings = await Listing.find().populate("owner").sort({ createdAt: -1 }).limit(5);
-        } else if (queryCategory) {
-            listings = await Listing.find({ categories: { $in: [queryCategory] } }).populate("owner");
-        } else {
-            listings = await Listing.find().populate("owner");
-        }
+        const listings = await Listing.find({ category: req.params.category.toLowerCase() }).populate('owner');
 
         const listingsWithoutPasswords = listings.map(listing => {
             const { password, ...ownerWithoutPassword } = listing.owner.toObject();
@@ -161,59 +172,79 @@ export const displayAllListingsForASingleUserWithoutId = async (req, res, next) 
     }
 };
 
-
 export const updateListing = async (req, res, next) => {
     try {
-
-        const listing = await Listing.findById(req.params.id)
+        const listing = await Listing.findById(req.params.id).populate('owner');
 
         if (!listing) {
-            res.status(404).json({Message: "This listing was either deleted recently or does not exist"})
-        }else if (listing.owner.toString() !== req.user.id) {
-            res.status(401).json({Message: "You are not allowed to update this listing"})
+            return res.status(404).json({ Message: "This listing was either deleted recently or does not exist" });
         }
-        else if (listing){
-            await cloudinary.uploader.destroy(listing.cloudinary_id, (err,result)=>{
-                if(err){
+
+        if (listing.owner._id.toString() !== req.user.id) {
+            return res.status(401).json({ Message: "You are not allowed to update this listing" });
+        }
+
+        // Handle image deletion and upload
+        if (req.file) {
+            // Delete the old image if it exists
+            if (listing.cloudinary_id) {
+                try {
+                    await cloudinary.uploader.destroy(listing.cloudinary_id);
+                } catch (err) {
                     console.log(err);
                     return res.status(500).json({
                         success: false,
-                        message: "Error"
-                    })
+                        message: "Error deleting old image"
+                    });
                 }
-            });
-            let image = await cloudinary.uploader.upload(req.file.path)
-            const updatedListing ={
-                owner: req.user.id, // This part is gotten from the payload of the jwt, so the user that is logged in is identified as the owner of the listing
-                title: req.body,
-                description: req.body,
-                size: req.body,
-                location: req.body,
-                price: req.body,
-                isForSale: req.body,
-                categories: req.body,
-                image :  image.secure_url,
-                cloudinary_id : image.public_id
             }
-            const listingsWithoutPasswords = {};
-            (listings || []).forEach(listing => {
-                const { password, ...ownerWithoutPassword } = listing.owner.toObject();
-                listingsWithoutPasswords[listing.id] = {
-                    ...listing.toObject(),
-                    owner: ownerWithoutPassword
-                };
-            });
 
-            const listing = await Listing.findByIdAndUpdate(req.params.id,listingsWithoutPasswords,{new : true})
-            res.status(200).json({Message: "Update Successful", listing})
+            // Upload the new image to Cloudinary
+            try {
+                const image = await cloudinary.uploader.upload(req.file.path);
+                req.body.img = image.secure_url; // Update the image URL
+                req.body.cloudinary_id = image.public_id; // Update the Cloudinary ID
+            } catch (err) {
+                console.log(err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Error uploading new image"
+                });
+            }
         }
+
+        // Prepare the updated listing object
+        const updatedListing = {
+            owner: req.user.id, // This part is gotten from the payload of the JWT, so the user that is logged in is identified as the owner of the listing
+            title: req.body.title,
+            description: req.body.description,
+            size: req.body.size,
+            location: req.body.location,
+            price: req.body.price,
+            isForSale: req.body.isForSale,
+            categories: req.body.categories,
+            img: req.body.img,
+            cloudinary_id: req.body.cloudinary_id
+        };
+
+        // Update the listing
+        const updatedListingResult = await Listing.findByIdAndUpdate(req.params.id, updatedListing, { new: true }).populate('owner');
+
+        // Remove password from the owner object
+        const { password, ...ownerWithoutPassword } = updatedListingResult.owner.toObject();
+        const listingWithoutPassword = {
+            ...updatedListingResult.toObject(),
+            owner: ownerWithoutPassword
+        };
+
+        res.status(200).json({ Message: "Update Successful", listing: listingWithoutPassword });
     } catch (e) {
-        res.status(500).send("Internal Server Error")
-        console.log(`Error encountered in updateListingPrivate ${e}`)
-
-
+        console.error(e);
+        res.status(500).send("Internal Server Error");
+        console.log(`Error encountered in updateListing: ${e}`);
     }
-}
+};
+
 // // Admin Only
 export const deleteAllListings = async (req,res) => {
     const listings = await Listing.deleteMany();
