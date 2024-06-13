@@ -2,10 +2,6 @@ import User from "../models/user.js";
 import bcrypt from "bcrypt";
 
 
- const createProfile = async (req,res)=>{
-    const profile = await User.create(req.body);
-    res.status(200).send(profile)
-}
 
 export const updateUserDetails = async (req, res, next) => {
     try {
@@ -86,28 +82,17 @@ export const deleteUser = async (req,res) =>{
     }
 }
 
-export const getUserStats = async (req,res)=>{
-    try{
-    const date = new Date();
-    const lastYear = new Date(date.setFullYear(date.getFullYear()-1))
+export const sortedByRole = async (req,res) =>{
+    try {
+        const user = await User.find({role: req.params.role});
 
-        const data = await User.aggregate([
-            {$match: { createdAt:{ $gte: lastYear } } },
-            {
-                $project:{
-                    month: {$month: "$createdAt"},
-                }
-            },
-            {
-                $group:{
-                    usersIn:"$month",
-                    total: { $sum : 1 }
-                }
-            }
-        ])
-        res.status(200).send(data)
-    }catch (e) {
-        res.status(500).send(e)
+        if(!user) res.status(404).send("User not found");
 
+         res.status(200).json({Message:"Users sorted by role", user});
+
+        res.status(200).send("User Retrieved", user);
+    } catch (e) {
+        res.status(500).json({Message:"Internal Server Error", Error: e.message});
+        console.log(e)
     }
 }
